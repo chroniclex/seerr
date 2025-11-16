@@ -91,6 +91,7 @@ interface DiscoverMovieOptions {
   sortBy?: SortOptions;
   watchRegion?: string;
   watchProviders?: string;
+  withoutWatchProviders?: string;
   certification?: string;
   certificationGte?: string;
   certificationLte?: string;
@@ -117,6 +118,7 @@ interface DiscoverTvOptions {
   sortBy?: SortOptions;
   watchRegion?: string;
   watchProviders?: string;
+  withoutWatchProviders?: string;
   withStatus?: string; // Returning Series: 0 Planned: 1 In Production: 2 Ended: 3 Cancelled: 4 Pilot: 5
   certification?: string;
   certificationGte?: string;
@@ -507,6 +509,7 @@ class TheMovieDb extends ExternalAPI implements TvShowProvider {
     voteCountGte,
     voteCountLte,
     watchProviders,
+    withoutWatchProviders,
     watchRegion,
     certification,
     certificationGte,
@@ -560,6 +563,7 @@ class TheMovieDb extends ExternalAPI implements TvShowProvider {
           'vote_count.lte': voteCountLte,
           watch_region: watchRegion,
           with_watch_providers: watchProviders,
+          without_watch_providers: withoutWatchProviders,
           certification: certification,
           'certification.gte': certificationGte,
           'certification.lte': certificationLte,

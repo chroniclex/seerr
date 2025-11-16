@@ -5,6 +5,7 @@ import PageTitle from '@app/components/Common/PageTitle';
 import LanguageSelector from '@app/components/LanguageSelector';
 import QuotaSelector from '@app/components/QuotaSelector';
 import RegionSelector from '@app/components/RegionSelector';
+import { WatchProviderSelector } from '@app/components/Selector';
 import { availableLanguages } from '@app/context/LanguageContext';
 import useLocale from '@app/hooks/useLocale';
 import useSettings from '@app/hooks/useSettings';
@@ -73,6 +74,9 @@ const messages = defineMessages(
     plexwatchlistsyncseries: 'Auto-Request Series',
     plexwatchlistsyncseriestip:
       'Automatically request series on your <PlexWatchlistSupportLink>Plex Watchlist</PlexWatchlistSupportLink>',
+    subscribedservices: 'Subscribed Streaming Services',
+    subscribedservicestip:
+      'Select the streaming services you are subscribed to. You can filter movies to hide content available on these services.',
   }
 );
 
@@ -169,6 +173,7 @@ const UserGeneralSettings = () => {
           tvQuotaDays: data?.tvQuotaDays,
           watchlistSyncMovies: data?.watchlistSyncMovies,
           watchlistSyncTv: data?.watchlistSyncTv,
+          subscribedWatchProviders: data?.subscribedWatchProviders ?? [],
         }}
         validationSchema={UserGeneralSettingsSchema}
         enableReinitialize
@@ -191,6 +196,7 @@ const UserGeneralSettings = () => {
               tvQuotaDays: tvQuotaEnabled ? values.tvQuotaDays : null,
               watchlistSyncMovies: values.watchlistSyncMovies,
               watchlistSyncTv: values.watchlistSyncTv,
+              subscribedWatchProviders: values.subscribedWatchProviders,
             });
 
             if (currentUser?.id === user?.id && setLocale) {
@@ -453,6 +459,26 @@ const UserGeneralSettings = () => {
                       onChange={setFieldValue}
                       regionType="streaming"
                       disableAll
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="form-row">
+                <label htmlFor="subscribedWatchProviders" className="text-label">
+                  <span>{intl.formatMessage(messages.subscribedservices)}</span>
+                  <span className="label-tip">
+                    {intl.formatMessage(messages.subscribedservicestip)}
+                  </span>
+                </label>
+                <div className="form-input-area">
+                  <div className="relative z-10">
+                    <WatchProviderSelector
+                      type="movie"
+                      region={values.streamingRegion || currentSettings.region || 'US'}
+                      activeProviders={values.subscribedWatchProviders}
+                      onChange={(region, providers) => {
+                        setFieldValue('subscribedWatchProviders', providers);
+                      }}
                     />
                   </div>
                 </div>

@@ -9,15 +9,19 @@ import {
 } from '@app/components/Discover/constants';
 import FilterSlideover from '@app/components/Discover/FilterSlideover';
 import useDiscover from '@app/hooks/useDiscover';
+import { useUser } from '@app/hooks/useUser';
 import { useUpdateQueryParams } from '@app/hooks/useUpdateQueryParams';
 import Error from '@app/pages/_error';
 import defineMessages from '@app/utils/defineMessages';
 import { BarsArrowDownIcon, FunnelIcon } from '@heroicons/react/24/solid';
+import { EyeSlashIcon } from '@heroicons/react/24/outline';
 import type { SortOptions as TMDBSortOptions } from '@server/api/themoviedb';
 import type { MovieResult } from '@server/models/Search';
+import type { UserSettingsGeneralResponse } from '@server/interfaces/api/userSettingsInterfaces';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useIntl } from 'react-intl';
+import useSWR from 'swr';
 
 const messages = defineMessages('components.Discover.DiscoverMovies', {
   discovermovies: 'Movies',
@@ -31,6 +35,7 @@ const messages = defineMessages('components.Discover.DiscoverMovies', {
   sortTmdbRatingDesc: 'TMDB Rating Descending',
   sortTitleAsc: 'Title (A-Z) Ascending',
   sortTitleDesc: 'Title (Z-A) Descending',
+  hideonmyservices: 'Hide on My Services',
 });
 
 const SortOptions: Record<string, TMDBSortOptions> = {
@@ -48,6 +53,11 @@ const DiscoverMovies = () => {
   const intl = useIntl();
   const router = useRouter();
   const updateQueryParams = useUpdateQueryParams({});
+  const { user } = useUser();
+
+  const { data: userSettings } = useSWR<UserSettingsGeneralResponse>(
+    user ? `/api/v1/user/${user.id}/settings/main` : null
+  );
 
   const preparedFilters = prepareFilterValues(router.query);
 
@@ -64,6 +74,23 @@ const DiscoverMovies = () => {
     preparedFilters
   );
   const [showFilters, setShowFilters] = useState(false);
+
+  const hasSubscribedServices =
+    userSettings?.subscribedWatchProviders &&
+    userSettings.subscribedWatchProviders.length > 0;
+
+  const hideOnMyServicesActive = !!preparedFilters.withoutWatchProviders;
+
+  const toggleHideOnMyServices = () => {
+    if (hideOnMyServicesActive) {
+      updateQueryParams('withoutWatchProviders', undefined);
+    } else if (hasSubscribedServices) {
+      updateQueryParams(
+        'withoutWatchProviders',
+        userSettings?.subscribedWatchProviders?.join('|')
+      );
+    }
+  };
 
   if (error) {
     return <Error statusCode={500} />;
@@ -120,6 +147,18 @@ const DiscoverMovies = () => {
             onClose={() => setShowFilters(false)}
             show={showFilters}
           />
+          {hasSubscribedServices && (
+            <div className="mb-2 flex flex-grow sm:mb-0 sm:mr-2 lg:flex-grow-0">
+              <Button
+                onClick={toggleHideOnMyServices}
+                className="w-full"
+                buttonType={hideOnMyServicesActive ? 'primary' : 'default'}
+              >
+                <EyeSlashIcon />
+                <span>{intl.formatMessage(messages.hideonmyservices)}</span>
+              </Button>
+            </div>
+          )}
           <div className="mb-2 flex flex-grow sm:mb-0 lg:flex-grow-0">
             <Button onClick={() => setShowFilters(true)} className="w-full">
               <FunnelIcon />

@@ -76,6 +76,33 @@ export class UserSettings {
     type: 'text',
     nullable: true,
     transformer: {
+      from: (value: string | null): number[] | null => {
+        if (!value) {
+          return null;
+        }
+        if (value === 'none') {
+          return [];
+        }
+        return value.split(',').map((v) => Number(v));
+      },
+      to: (value: number[] | null): string | null => {
+        if (!value) {
+          return null;
+        }
+        const finalValue = value.join(',');
+        if (!finalValue) {
+          return 'none';
+        }
+        return finalValue;
+      },
+    },
+  })
+  public subscribedWatchProviders?: number[];
+
+  @Column({
+    type: 'text',
+    nullable: true,
+    transformer: {
       from: (value: string | null): Partial<NotificationAgentTypes> => {
         const defaultTypes = {
           email: ALL_NOTIFICATIONS,

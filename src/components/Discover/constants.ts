@@ -109,6 +109,7 @@ export const QueryFilterOptions = z.object({
   voteCountGte: z.string().optional(),
   watchRegion: z.string().optional(),
   watchProviders: z.string().optional(),
+  withoutWatchProviders: z.string().optional(),
   status: z.string().optional(),
   certification: z.string().optional(),
   certificationGte: z.string().optional(),
@@ -198,6 +199,10 @@ export const prepareFilterValues = (
     filterValues.watchProviders = values.watchProviders;
   }
 
+  if (values.withoutWatchProviders) {
+    filterValues.withoutWatchProviders = values.withoutWatchProviders;
+  }
+
   if (values.watchRegion) {
     filterValues.watchRegion = values.watchRegion;
   }
@@ -255,6 +260,11 @@ export const countActiveFilters = (filterValues: FilterOptions): number => {
     totalCount += 1;
     delete clonedFilters.watchProviders;
     delete clonedFilters.watchRegion;
+  }
+
+  if (clonedFilters.withoutWatchProviders) {
+    totalCount += 1;
+    delete clonedFilters.withoutWatchProviders;
   }
 
   if (
