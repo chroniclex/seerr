@@ -19,6 +19,7 @@ export interface UserSettingsGeneralResponse {
   watchlistSyncMovies?: boolean;
   watchlistSyncTv?: boolean;
   subscribedWatchProviders?: number[];
+  hideWatchProvidersOnDiscover?: boolean;
 }
 
 export type NotificationAgentTypes = Record<NotificationAgentKey, number>;

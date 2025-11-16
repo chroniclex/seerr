@@ -409,6 +409,7 @@ discoverRoutes.get('/tv', async (req, res, next) => {
       voteCountGte: query.voteCountGte,
       voteCountLte: query.voteCountLte,
       watchProviders: query.watchProviders,
+      withoutWatchProviders: query.withoutWatchProviders,
       watchRegion: query.watchRegion,
       withStatus: query.status,
       certification: query.certification,

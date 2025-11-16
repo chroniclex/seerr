@@ -77,6 +77,9 @@ const messages = defineMessages(
     subscribedservices: 'Subscribed Streaming Services',
     subscribedservicestip:
       'Select the streaming services you are subscribed to. You can filter movies to hide content available on these services.',
+    hidewatchproviders: 'Automatically Hide Content on My Services',
+    hidewatchproviderstip:
+      'When enabled, the discover pages will automatically filter out content available on your subscribed services',
   }
 );
 
@@ -174,6 +177,7 @@ const UserGeneralSettings = () => {
           watchlistSyncMovies: data?.watchlistSyncMovies,
           watchlistSyncTv: data?.watchlistSyncTv,
           subscribedWatchProviders: data?.subscribedWatchProviders ?? [],
+          hideWatchProvidersOnDiscover: data?.hideWatchProvidersOnDiscover ?? false,
         }}
         validationSchema={UserGeneralSettingsSchema}
         enableReinitialize
@@ -197,6 +201,7 @@ const UserGeneralSettings = () => {
               watchlistSyncMovies: values.watchlistSyncMovies,
               watchlistSyncTv: values.watchlistSyncTv,
               subscribedWatchProviders: values.subscribedWatchProviders,
+              hideWatchProvidersOnDiscover: values.hideWatchProvidersOnDiscover,
             });
 
             if (currentUser?.id === user?.id && setLocale) {
@@ -483,6 +488,29 @@ const UserGeneralSettings = () => {
                   </div>
                 </div>
               </div>
+              {values.subscribedWatchProviders && values.subscribedWatchProviders.length > 0 && (
+                <div className="form-row">
+                  <label htmlFor="hideWatchProvidersOnDiscover" className="checkbox-label">
+                    <span>{intl.formatMessage(messages.hidewatchproviders)}</span>
+                    <span className="label-tip">
+                      {intl.formatMessage(messages.hidewatchproviderstip)}
+                    </span>
+                  </label>
+                  <div className="form-input-area">
+                    <Field
+                      type="checkbox"
+                      id="hideWatchProvidersOnDiscover"
+                      name="hideWatchProvidersOnDiscover"
+                      onChange={() => {
+                        setFieldValue(
+                          'hideWatchProvidersOnDiscover',
+                          !values.hideWatchProvidersOnDiscover
+                        );
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
               {currentHasPermission(Permission.MANAGE_USERS) &&
                 !hasPermission(Permission.MANAGE_USERS) && (
                   <>

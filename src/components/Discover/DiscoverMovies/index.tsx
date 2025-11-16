@@ -2,6 +2,7 @@ import Button from '@app/components/Common/Button';
 import Header from '@app/components/Common/Header';
 import ListView from '@app/components/Common/ListView';
 import PageTitle from '@app/components/Common/PageTitle';
+import Tooltip from '@app/components/Common/Tooltip';
 import type { FilterOptions } from '@app/components/Discover/constants';
 import {
   countActiveFilters,
@@ -19,7 +20,7 @@ import type { SortOptions as TMDBSortOptions } from '@server/api/themoviedb';
 import type { MovieResult } from '@server/models/Search';
 import type { UserSettingsGeneralResponse } from '@server/interfaces/api/userSettingsInterfaces';
 import { useRouter } from 'next/router';
-import { useState, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useIntl } from 'react-intl';
 import useSWR from 'swr';
 
@@ -36,6 +37,9 @@ const messages = defineMessages('components.Discover.DiscoverMovies', {
   sortTitleAsc: 'Title (A-Z) Ascending',
   sortTitleDesc: 'Title (Z-A) Descending',
   hideonmyservices: 'Hide on My Services',
+  hideonmyservicesTooltip:
+    'Hide movies available on your subscribed streaming services',
+  excludingservices: 'Excluding: {services}',
 });
 
 const SortOptions: Record<string, TMDBSortOptions> = {
@@ -75,13 +79,38 @@ const DiscoverMovies = () => {
   );
   const [showFilters, setShowFilters] = useState(false);
 
-  const hasSubscribedServices =
-    userSettings?.subscribedWatchProviders &&
-    userSettings.subscribedWatchProviders.length > 0;
+  const { data: watchProviders } = useSWR(
+    userSettings?.streamingRegion
+      ? `/api/v1/watchproviders/movies?watchRegion=${userSettings.streamingRegion}`
+      : null
+  );
 
-  const hideOnMyServicesActive = !!preparedFilters.withoutWatchProviders;
+  const hasSubscribedServices = useMemo(
+    () =>
+      userSettings?.subscribedWatchProviders &&
+      userSettings.subscribedWatchProviders.length > 0,
+    [userSettings?.subscribedWatchProviders]
+  );
 
-  const toggleHideOnMyServices = () => {
+  const hideOnMyServicesActive = useMemo(
+    () => !!preparedFilters.withoutWatchProviders,
+    [preparedFilters.withoutWatchProviders]
+  );
+
+  const excludedServiceNames = useMemo(() => {
+    if (!hideOnMyServicesActive || !watchProviders || !userSettings?.subscribedWatchProviders) {
+      return '';
+    }
+    const names = userSettings.subscribedWatchProviders
+      .map((id) => {
+        const provider = watchProviders.find((p: any) => p.id === id);
+        return provider?.name;
+      })
+      .filter(Boolean);
+    return names.slice(0, 3).join(', ') + (names.length > 3 ? '...' : '');
+  }, [hideOnMyServicesActive, watchProviders, userSettings?.subscribedWatchProviders]);
+
+  const toggleHideOnMyServices = useCallback(() => {
     if (hideOnMyServicesActive) {
       updateQueryParams('withoutWatchProviders', undefined);
     } else if (hasSubscribedServices) {
@@ -90,7 +119,34 @@ const DiscoverMovies = () => {
         userSettings?.subscribedWatchProviders?.join('|')
       );
     }
-  };
+  }, [
+    hideOnMyServicesActive,
+    hasSubscribedServices,
+    updateQueryParams,
+    userSettings?.subscribedWatchProviders,
+  ]);
+
+  // Auto-apply filter if user preference is set
+  useMemo(() => {
+    if (
+      userSettings?.hideWatchProvidersOnDiscover &&
+      hasSubscribedServices &&
+      !hideOnMyServicesActive &&
+      !preparedFilters.watchProviders
+    ) {
+      updateQueryParams(
+        'withoutWatchProviders',
+        userSettings.subscribedWatchProviders?.join('|')
+      );
+    }
+  }, [
+    userSettings?.hideWatchProvidersOnDiscover,
+    hasSubscribedServices,
+    hideOnMyServicesActive,
+    preparedFilters.watchProviders,
+    userSettings?.subscribedWatchProviders,
+    updateQueryParams,
+  ]);
 
   if (error) {
     return <Error statusCode={500} />;
@@ -148,15 +204,26 @@ const DiscoverMovies = () => {
             show={showFilters}
           />
           {hasSubscribedServices && (
-            <div className="mb-2 flex flex-grow sm:mb-0 sm:mr-2 lg:flex-grow-0">
-              <Button
-                onClick={toggleHideOnMyServices}
-                className="w-full"
-                buttonType={hideOnMyServicesActive ? 'primary' : 'default'}
+            <div className="mb-2 flex flex-grow flex-col sm:mb-0 sm:mr-2 lg:flex-grow-0">
+              <Tooltip
+                content={intl.formatMessage(messages.hideonmyservicesTooltip)}
               >
-                <EyeSlashIcon />
-                <span>{intl.formatMessage(messages.hideonmyservices)}</span>
-              </Button>
+                <Button
+                  onClick={toggleHideOnMyServices}
+                  className="w-full"
+                  buttonType={hideOnMyServicesActive ? 'primary' : 'default'}
+                >
+                  <EyeSlashIcon />
+                  <span>{intl.formatMessage(messages.hideonmyservices)}</span>
+                </Button>
+              </Tooltip>
+              {hideOnMyServicesActive && excludedServiceNames && (
+                <div className="mt-1 text-xs text-gray-400">
+                  {intl.formatMessage(messages.excludingservices, {
+                    services: excludedServiceNames,
+                  })}
+                </div>
+              )}
             </div>
           )}
           <div className="mb-2 flex flex-grow sm:mb-0 lg:flex-grow-0">

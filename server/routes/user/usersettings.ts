@@ -89,6 +89,7 @@ userSettingsRoutes.get<{ id: string }, UserSettingsGeneralResponse>(
         watchlistSyncMovies: user.settings?.watchlistSyncMovies,
         watchlistSyncTv: user.settings?.watchlistSyncTv,
         subscribedWatchProviders: user.settings?.subscribedWatchProviders,
+        hideWatchProvidersOnDiscover: user.settings?.hideWatchProvidersOnDiscover,
       });
     } catch (e) {
       next({ status: 500, message: e.message });
@@ -156,6 +157,7 @@ userSettingsRoutes.post<
         watchlistSyncMovies: req.body.watchlistSyncMovies,
         watchlistSyncTv: req.body.watchlistSyncTv,
         subscribedWatchProviders: req.body.subscribedWatchProviders,
+        hideWatchProvidersOnDiscover: req.body.hideWatchProvidersOnDiscover,
       });
     } else {
       user.settings.discordId = req.body.discordId;
@@ -166,6 +168,7 @@ userSettingsRoutes.post<
       user.settings.watchlistSyncMovies = req.body.watchlistSyncMovies;
       user.settings.watchlistSyncTv = req.body.watchlistSyncTv;
       user.settings.subscribedWatchProviders = req.body.subscribedWatchProviders;
+      user.settings.hideWatchProvidersOnDiscover = req.body.hideWatchProvidersOnDiscover;
     }
 
     const savedUser = await userRepository.save(user);
@@ -180,6 +183,7 @@ userSettingsRoutes.post<
       watchlistSyncMovies: savedUser.settings?.watchlistSyncMovies,
       watchlistSyncTv: savedUser.settings?.watchlistSyncTv,
       subscribedWatchProviders: savedUser.settings?.subscribedWatchProviders,
+      hideWatchProvidersOnDiscover: savedUser.settings?.hideWatchProvidersOnDiscover,
       email: savedUser.email,
     });
   } catch (e) {

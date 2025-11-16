@@ -99,6 +99,9 @@ export class UserSettings {
   })
   public subscribedWatchProviders?: number[];
 
+  @Column({ nullable: true, default: false })
+  public hideWatchProvidersOnDiscover?: boolean;
+
   @Column({
     type: 'text',
     nullable: true,
